@@ -1,0 +1,10 @@
+databases:
+  snowflake:
+    type: snowflake
+    db: FIVETRAN_DB
+    schema: PROD_NOVO_ONBOARDING_PUBLIC
+    wh: COMPUTE_WH
+    host: fivex-bank_novo_enterprise
+    user: general_access
+    pw: Xylo-data-bi-844tag
+    role: BI_ROLE

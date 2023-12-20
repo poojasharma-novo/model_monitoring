@@ -1,0 +1,24 @@
+name: ds
+channels:
+  - defaults
+dependencies:
+  - python=3.9
+  #- snowflake-sqlalchemy
+  - plotly
+  - scikit-learn
+  - scipy
+  - sqlalchemy
+  - jupyter
+  - numpy
+  #- psycopg2-binary
+  - pandas
+  - pyyaml
+  - jupyterlab
+  - matplotlib
+  - autopep8
+  #- pydrive
+  - spyder
+  - graphviz
+  - python-graphviz
+  - statsmodels
+prefix: /usr/local/Caskroom/miniconda/base/envs/ds
