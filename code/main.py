@@ -4,6 +4,10 @@ from drift_metrics import classification_performance_report, label_binary_classi
 from drift_metrics import data_stability, data_drift
 from combine_reports import combine_html
 from Send_email import send_email
+import os 
+
+import warnings
+warnings.filterwarnings("ignore") 
 
 feature_set = ['od_count_3m',
  'zero_balance_count_1m',
@@ -52,15 +56,14 @@ def main():
         headings = [heading1, heading2, heading3]
 
         email_sender = 'pooja.sharma@novo.co'
-        email_password = 'gytv syfy jqxw zjyl'
-        #email_password = os.environ.get('EMAIL_PASSWORD')
+        email_password = os.environ.get('EMAIL_PASSWORD')
         email_receiver = 'psharma0880@gmail.com'
 
         combine_html(files, headings, output_file, main_heading)
         send_email(email_sender, email_password, email_receiver, month)
 
     except Exception as e:
-        print('!! Unexpected error:', e)
+        print('!! Error in running main :', e)
 
 
 if __name__ == "__main__": 

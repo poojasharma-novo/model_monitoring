@@ -1,19 +1,11 @@
 import pandas as pd
 from evidently import ColumnMapping
 from evidently.report import Report
-from evidently.metric_preset import DataDriftPreset, TargetDriftPreset,ClassificationPreset
+from evidently.metric_preset import DataDriftPreset, ClassificationPreset
 from evidently.test_suite import TestSuite
 from evidently.test_preset import BinaryClassificationTestPreset
-from evidently.options import BERLIN_AUTUMN_COLOR_OPTIONS
-from evidently.options import NIGHTOWL_COLOR_OPTIONS
 from evidently.options import ColorOptions
 from evidently.test_preset import DataStabilityTestPreset
-from evidently.calculations.stattests import StatTest
-from evidently.metrics import ColumnDriftMetric, DatasetDriftMetric, DataDriftTable
-
-from data_preprocess import rs2_preprocess
-
-
 
 color_scheme = ColorOptions()
 color_scheme.primary_color = "#5a86ad"

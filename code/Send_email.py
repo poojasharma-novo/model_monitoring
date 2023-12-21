@@ -43,8 +43,7 @@ def send_email(email_sender, email_password, email_receiver, month):
 # if __name__ == "__main__": 
 
 #     email_sender = 'pooja.sharma@novo.co'
-#     email_password = 'gytv syfy jqxw zjyl'
-#     #email_password = os.environ.get('EMAIL_PASSWORD')
+#     email_password = os.environ.get('EMAIL_PASSWORD')
 #     email_receiver = 'psharma0880@gmail.com'
     
 #     send_email(email_sender, email_password, email_receiver)
