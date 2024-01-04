@@ -11,9 +11,10 @@ on a.lending_business_id=b.lending_business_id and a.created_at=b.min_created_at
 
 ,fpd_data3 as (
 select lending_business_id, created_at, due_date, case when PAID_ON_TIME='false' then 1 else 0 end as fpd_flag from fpd_data2
-where date(CREATED_AT) >= dateadd('day', -1, '2023-01-01') 
-and month(created_at) = 9
--- and date(CREATED_AT) < current_date()
+where 
+created_at >= date_trunc('month',current_date()) - interval '2 month'
+and created_at < date_trunc('month', current_date()) - interval '1 month'
+-- date(created_at) between '2023-11-01' and '2023-11-30'
 and date(due_date) < date(current_date())
 )
 
@@ -42,8 +43,9 @@ novo_risk_score as rs2_score, CREATED_AT
 from FIVETRAN_DB.PROD_NOVO_API_PUBLIC.LENDING_DECISION_RESULTS
 where 1=1
 and json_extract_path_text(rejection_reasons, 'data') = '[]'
-and month(created_at) = 9
---and date(created_at) > '2023-01-02' and date(created_at) < current_date()
+and created_at >= date_trunc('month',current_date()) - interval '2 month'
+  and created_at < date_trunc('month', current_date()) - interval '1 month'
+-- and date(created_at) between '2023-11-01' and '2023-11-30'
 )
 ,denied_data as (
 select json_extract_path_text(predict_meta, 'business_id') as b1_id, json_extract_path_text(predict_meta, 'data.business_id') as b2_id, 
@@ -58,8 +60,9 @@ novo_risk_score as rs2_score, CREATED_AT
 from FIVETRAN_DB.PROD_NOVO_API_PUBLIC.LENDING_DECISION_RESULTS
 where 1=1
 and json_extract_path_text(rejection_reasons, 'data') != '[]'
-and month(created_at) = 9
--- and date(created_at) > '2023-01-02' and date(created_at) < current_date()
+and created_at >= date_trunc('month',current_date()) - interval '2 month'
+and created_at < date_trunc('month', current_date()) - interval '1 month'
+-- and date(created_at) between '2023-11-01' and '2023-11-30'
 )
 
 ,denied_only_data as (
@@ -98,103 +101,105 @@ select a.business_id, a.rs2_score, a.default_proba, a.bin, a.decision, a.predict
 
  """)
 
-rs2_features = (r"""SELECT
+rs2_features = (r"""select 
+-- od_count_3m
+    TO_NUMBER(COALESCE(
+        json_extract_path_text(predict_variables, 'od_count_3m'),
+        json_extract_path_text(predict_variables, 'data.od_count_3m'),
+        json_extract_path_text(predict_variables, 'context.od_count_3m'),
+        null
+    )) as od_count_3m,
+
+-- zero_balance_count_1m
+    TO_NUMBER(COALESCE(
+        json_extract_path_text(predict_variables, 'zero_balance_count_1m'),
+        json_extract_path_text(predict_variables, 'data.zero_balance_count_1m'), 
+        json_extract_path_text(predict_variables, 'context.zero_balance_count_1m'), 
+        null
+    )) as zero_balance_count_1m,
+                        
+-- ratio_ach_credit_amt_90_180
+   TO_NUMBER(COALESCE(
+        json_extract_path_text(predict_variables, 'ratio_ach_credit_amt_90_180'),
+        json_extract_path_text(predict_variables, 'data.ratio_ach_credit_amt_90_180'), 
+        json_extract_path_text(predict_variables, 'context.ratio_ach_credit_amt_90_180'),
+        null
+    )) as ratio_ach_credit_amt_90_180,
+                        
+ -- ratio_ach_debit_amt_90_180
+   TO_NUMBER(COALESCE(
+        json_extract_path_text(predict_variables, 'ratio_ach_debit_amt_90_180'),
+        json_extract_path_text(predict_variables, 'data.ratio_ach_debit_amt_90_180'), 
+        json_extract_path_text(predict_variables, 'context.ratio_ach_debit_amt_90_180'), 
+        null
+    )) as ratio_ach_debit_amt_90_180,
+
+-- stddev_amount_ach_c_1m
+    TO_NUMBER(COALESCE(
+        json_extract_path_text(predict_variables, 'stddev_amount_ach_c_1m'),
+        json_extract_path_text(predict_variables, 'data.stddev_amount_ach_c_1m'), 
+        json_extract_path_text(predict_variables, 'context.stddev_amount_ach_c_1m'), 
+        null
+    )) as stddev_amount_ach_c_1m,
+                        
+-- distinct_ach_c_txns_100_6m
+    TO_NUMBER(COALESCE(
+        json_extract_path_text(predict_variables, 'distinct_ach_c_txns_100_6m'),
+        json_extract_path_text(predict_variables, 'data.distinct_ach_c_txns_100_6m'), 
+        json_extract_path_text(predict_variables, 'context.distinct_ach_c_txns_100_6m'), 
+        null
+    )) as distinct_ach_c_txns_100_6m,
+
+-- distinct_mrdc_txns_1m
+    TO_NUMBER(COALESCE(
+        json_extract_path_text(predict_variables, 'distinct_mrdc_txns_1m'),
+        json_extract_path_text(predict_variables, 'data.distinct_mrdc_txns_1m'), 
+        json_extract_path_text(predict_variables, 'context.distinct_mrdc_txns_1m'), 
+        null
+    )) as distinct_mrdc_txns_1m, 
+
+ -- ratio_debit_credit_1m
+    TO_NUMBER(COALESCE(
+        json_extract_path_text(predict_variables, 'ratio_debit_credit_1m'),
+        json_extract_path_text(predict_variables, 'data.ratio_debit_credit_1m'),
+        json_extract_path_text(predict_variables, 'context.ratio_debit_credit_1m'), 
+        null
+    )) as ratio_debit_credit_1m,
+                        
+ -- ratio_debit_credit_3m
+    TO_NUMBER(COALESCE(
+        json_extract_path_text(predict_variables, 'ratio_debit_credit_3m'),
+        json_extract_path_text(predict_variables, 'data.ratio_debit_credit_3m'), 
+        json_extract_path_text(predict_variables, 'context.ratio_debit_credit_3m'), 
+        null
+    )) as ratio_debit_credit_3m,
+                        
+-- median_running_balance_6m
+    TO_NUMBER(COALESCE(
+        json_extract_path_text(predict_variables, 'median_running_balance_6m'),
+        json_extract_path_text(predict_variables, 'data.median_running_balance_6m'),
+        json_extract_path_text(predict_variables, 'context.median_running_balance_6m'),
+        null
+    )) as median_running_balance_6m,
+                                                                                  
 lending_business_id, 
 COALESCE(
         json_extract_path_text(predict_variables, 'business_id'),
         json_extract_path_text(predict_variables, 'data.business_id'),
         json_extract_path_text(predict_variables, 'context.business_id'),
         null
-    ) as business_id,
+     ) as business_id,
     
-date(created_at) as created_at,
-    -- median_running_balance_6m
-    COALESCE(
-        json_extract_path_text(predict_variables, 'median_running_balance_6m'),
-        json_extract_path_text(predict_variables, 'data.median_running_balance_6m'),
-        json_extract_path_text(predict_variables, 'context.median_running_balance_6m'),
-        null
-    ) as median_running_balance_6m,
-
-    -- od_count_3m
-    COALESCE(
-        json_extract_path_text(predict_variables, 'od_count_3m'),
-        json_extract_path_text(predict_variables, 'data.od_count_3m'),
-        json_extract_path_text(predict_variables, 'context.od_count_3m'),
-        null
-    ) as od_count_3m,
-
-    -- ratio_debit_credit_1m
-    COALESCE(
-        json_extract_path_text(predict_variables, 'ratio_debit_credit_1m'),
-        json_extract_path_text(predict_variables, 'data.ratio_debit_credit_1m'),
-        json_extract_path_text(predict_variables, 'context.ratio_debit_credit_1m'), 
-        null
-    ) as ratio_debit_credit_1m,
-
-    -- ratio_debit_credit_3m
-    COALESCE(
-        json_extract_path_text(predict_variables, 'ratio_debit_credit_3m'),
-        json_extract_path_text(predict_variables, 'data.ratio_debit_credit_3m'), 
-        json_extract_path_text(predict_variables, 'context.ratio_debit_credit_3m'), 
-        null
-    ) as ratio_debit_credit_3m,
-
-    -- zero_balance_count_1m
-    COALESCE(
-        json_extract_path_text(predict_variables, 'zero_balance_count_1m'),
-        json_extract_path_text(predict_variables, 'data.zero_balance_count_1m'), 
-        json_extract_path_text(predict_variables, 'context.zero_balance_count_1m'), 
-        null
-    ) as zero_balance_count_1m,
-
-    -- ratio_ach_credit_amt_90_180
-    COALESCE(
-        json_extract_path_text(predict_variables, 'ratio_ach_credit_amt_90_180'),
-        json_extract_path_text(predict_variables, 'data.ratio_ach_credit_amt_90_180'), 
-        json_extract_path_text(predict_variables, 'context.ratio_ach_credit_amt_90_180'),
-        null
-    ) as ratio_ach_credit_amt_90_180,
-
-    -- distinct_mrdc_txns_1m
-    COALESCE(
-        json_extract_path_text(predict_variables, 'distinct_mrdc_txns_1m'),
-        json_extract_path_text(predict_variables, 'data.distinct_mrdc_txns_1m'), 
-        json_extract_path_text(predict_variables, 'context.distinct_mrdc_txns_1m'), 
-        null
-    ) as distinct_mrdc_txns_1m,
-
-    -- distinct_ach_c_txns_100_6m
-    COALESCE(
-        json_extract_path_text(predict_variables, 'distinct_ach_c_txns_100_6m'),
-        json_extract_path_text(predict_variables, 'data.distinct_ach_c_txns_100_6m'), 
-        json_extract_path_text(predict_variables, 'context.distinct_ach_c_txns_100_6m'), 
-        null
-    ) as distinct_ach_c_txns_100_6m,
-
-    -- ratio_ach_debit_amt_90_180
-    COALESCE(
-        json_extract_path_text(predict_variables, 'ratio_ach_debit_amt_90_180'),
-        json_extract_path_text(predict_variables, 'data.ratio_ach_debit_amt_90_180'), 
-        json_extract_path_text(predict_variables, 'context.ratio_ach_debit_amt_90_180'), 
-        null
-    ) as ratio_ach_debit_amt_90_180,
-
-    -- stddev_amount_ach_c_1m
-    COALESCE(
-        json_extract_path_text(predict_variables, 'stddev_amount_ach_c_1m'),
-        json_extract_path_text(predict_variables, 'data.stddev_amount_ach_c_1m'), 
-        json_extract_path_text(predict_variables, 'context.stddev_amount_ach_c_1m'), 
-        null
-    ) as stddev_amount_ach_c_1m
+ date(created_at) as created_at
 
 FROM
     FIVETRAN_DB.PROD_NOVO_API_PUBLIC.LENDING_APPLICATION_SUBMISSION_VARIABLES
 
 WHERE
-    MONTH(created_at) = 4
+    business_id is not null and
+    created_at >= date_trunc('month',current_date()) - interval '2 month'
+  and created_at < date_trunc('month', current_date()) - interval '1 month'
+    -- date(created_at) between '2023-01-01' and '2023-01-31'
 
 ORDER BY
-    created_at;
-
-                """)
+    created_at """)

@@ -3,23 +3,41 @@ from evidently import ColumnMapping
 from evidently.report import Report
 from evidently.metric_preset import DataDriftPreset, ClassificationPreset
 from evidently.test_suite import TestSuite
-from evidently.test_preset import BinaryClassificationTestPreset
+from evidently.test_preset import BinaryClassificationTestPreset, DataStabilityTestPreset
 from evidently.options import ColorOptions
-from evidently.test_preset import DataStabilityTestPreset
+from data_preprocess import ref_dataset, train_dataset, feature_dataset, model_dataset
 
-color_scheme = ColorOptions()
-color_scheme.primary_color = "#5a86ad"
-color_scheme.fill_color = "#fff4f2"
-color_scheme.zero_line_color = "#016795"
-color_scheme.current_data_color = "#c292a1" 
-color_scheme.reference_data_color = "#017b92"
+color_scheme = ColorOptions(
+    primary_color = "#5a86ad",
+    fill_color = "#fff4f2",
+    zero_line_color = "#016795",
+    current_data_color = "#c292a1",
+    reference_data_color = "#017b92"
+)
 
+feature_set = ['od_count_3m',
+ 'zero_balance_count_1m',
+ 'ratio_ach_credit_amt_90_180',
+ 'ratio_ach_debit_amt_90_180',
+ 'stddev_amount_ach_c_1m',
+ 'distinct_ach_c_txns_100_6m',
+ 'distinct_mrdc_txns_1m',
+ 'ratio_debit_credit_1m',
+ 'ratio_debit_credit_3m',
+ 'median_running_balance_6m']
 
 path1 = "/Users/pooja/Desktop/Pooja/model monitoring/GitHub/model_monitoring/data/"
 path2 = "/Users/pooja/Desktop/Pooja/model monitoring/GitHub/model_monitoring/reports/"
-        
 
-def classification_performance_report(df_cur, x_train, month): 
+data_params = pd.read_pickle(path1 + "rs2_dataset/data_params.pkl")
+transformer = pd.read_pickle(path1 + "rs2_dataset/data_scaler_v2.pkl")
+
+df_ref = ref_dataset(feature_set, data_params, transformer)
+x_train = train_dataset()
+feature_data = feature_dataset()
+model_data = model_dataset()  
+
+def classification_performance_report(month): 
 
         column_mapping = ColumnMapping()
         column_mapping.target = 'actual_fpd'
@@ -30,12 +48,12 @@ def classification_performance_report(df_cur, x_train, month):
             ClassificationPreset()
         ],options=[color_scheme])
 
-        classification_performance_report.run(reference_data = x_train, current_data = df_cur, column_mapping=column_mapping)
+        classification_performance_report.run(reference_data = x_train, current_data = model_data, column_mapping=column_mapping)
         classification_performance_report.save_html(path2 +"model_performance/classification_"+ month+ ".html")
         return classification_performance_report
 
 
-def label_binary_classification(df_cur, x_train, month):
+def label_binary_classification(month):
 
         column_mapping = ColumnMapping()
         column_mapping.target = 'actual_fpd'
@@ -43,26 +61,28 @@ def label_binary_classification(df_cur, x_train, month):
         column_mapping.numerical_features = None
 
         label_binary_classification_performance = TestSuite(tests=[
-            BinaryClassificationTestPreset(),
+            BinaryClassificationTestPreset(stattest='psi'),
         ],options=[color_scheme])
 
-        label_binary_classification_performance.run(reference_data = x_train, current_data=df_cur, column_mapping = column_mapping)
+        label_binary_classification_performance.run(reference_data = x_train, current_data=model_data, column_mapping = column_mapping)
         label_binary_classification_performance.save_html(path2 + "model_performance/label_classification_" + month+ ".html")
         return label_binary_classification_performance
     
 
-def data_stability(df_cur, df_ref, month): 
+def data_stability(month): 
         data_stability= TestSuite(tests=[
             DataStabilityTestPreset(),
         ],options=[color_scheme])
-        data_stability.run(current_data=df_cur, reference_data = df_ref, column_mapping=None)
+        data_stability.run(current_data=feature_data, reference_data = df_ref, column_mapping=None)
         data_stability.save_html(path2 + 'data_drift/data_stability_'+month+'.html')
         return data_stability
 
 
-def data_drift(df_cur, df_ref, month): 
-        data_drift_report = Report(metrics=[DataDriftPreset(stattest='psi'),],options=[color_scheme])
-        data_drift_report.run(current_data=df_cur, reference_data = df_ref, column_mapping=None)
+def data_drift(month): 
+        data_drift_report = Report(metrics=[
+                DataDriftPreset(stattest="ks", stattest_threshold=0.35),  
+                DataDriftPreset(stattest="psi", stattest_threshold=0.25),],options=[color_scheme])
+        data_drift_report.run(current_data=feature_data, reference_data = df_ref, column_mapping=None)
         # path = "evidently/examples/integrations/streamlit-dashboard/projects/your-project/reports/first/"
         data_drift_report.save_html(path2 + "data_drift/data_drift_" + month + ".html")
         return data_drift_report

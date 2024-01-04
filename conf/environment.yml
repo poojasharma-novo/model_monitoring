@@ -7,7 +7,7 @@ dependencies:
   - plotly
   - scikit-learn
   - scipy
-  - sqlalchemy
+  - sqlalchemy=1.4.51
   - jupyter
   - numpy
   #- psycopg2-binary
@@ -21,4 +21,5 @@ dependencies:
   - graphviz
   - python-graphviz
   - statsmodels
+  - evidently=0.4.12
 prefix: /usr/local/Caskroom/miniconda/base/envs/ds

@@ -6,10 +6,8 @@
 # query(sql_query_string)
 ###########
 
-import pandas as pd
-from sqlalchemy.dialects import registry
 
-registry.register('snowflake','sqlalchemy','dialects')
+import pandas as pd
 from sqlalchemy import create_engine
 
 
@@ -84,7 +82,7 @@ class SQLQuery:
 
 # Test the module - Check if connections are working
 if __name__ == '__main__':
-    print(_DB_NAMES)
+    print("Name of the databases : ",_DB_NAMES)
     test_dbs = _DB_NAMES
     # test_dbs = ['snowflake']
     for db in test_dbs:

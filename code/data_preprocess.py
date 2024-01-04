@@ -1,4 +1,8 @@
+import sys
 import pandas as pd 
+sys.path.insert(0, '/Users/pooja/Desktop/Pooja/model monitoring/GitHub/model_monitoring/conf')
+from config import SQLQuery
+from queries import rs2_features, fpd_data
 
 path1 = "/Users/pooja/Desktop/Pooja/model monitoring/GitHub/model_monitoring/data/"
 path2 = "/Users/pooja/Desktop/Pooja/model monitoring/GitHub/model_monitoring/reports/"
@@ -18,6 +22,7 @@ feature_set = ['od_count_3m',
  'median_running_balance_6m']
 
 
+# preprocessing rs2_feature dataset 
 def rs2_preprocess( df, feature_set, data_params, transformer):
         temp = df.copy()
         
@@ -36,6 +41,7 @@ def rs2_preprocess( df, feature_set, data_params, transformer):
         # return processed dataframe
         return temp
 
+# dataset used for the rs2 model
 def ref_dataset(feature_set, data_params, transformer): 
     file_ref = 'lending_novo_txn_features_model_postscreen_v2.pkl'
     df_ref = pd.read_pickle(path1+file_ref)
@@ -43,21 +49,26 @@ def ref_dataset(feature_set, data_params, transformer):
     df_ref = rs2_preprocess(df_ref,feature_set, data_params, transformer)
     return df_ref
 
+# dataset used as x_train in rs2 model
 def train_dataset(): 
     x_train = pd.read_csv(path1 + "rs2_dataset/x_train.csv")
     x_train = x_train[['predicted_fpd3','fpd_plus_3']]
     x_train.rename(columns={"predicted_fpd3": "predicted_fpd", "fpd_plus_3": "actual_fpd"}, inplace=True)
     return x_train
 
-def feature_dataset(month): 
-    df = pd.read_csv(path1 + "rs2_dataset/rs2_dataset_" + month + ".csv")
-    df.columns = df.columns.str.lower()
+# current rs2_feature dataset
+def feature_dataset():
+    querySno = SQLQuery('snowflake')
+    engine = querySno.engine
+    df = querySno(rs2_features)
     df = df[feature_set]
     df = rs2_preprocess(df,feature_set, data_params, transformer)
-    df.to_pickle(path1+ "rs2_dataset/rs2_dataset_" +month + ".pkl")
     return df
 
-def model_dataset(month): 
-    df = pd.read_csv(path1 + "model_dataset/model_"+ month + ".csv")
-    df.columns = df.columns.str.lower()
+# current rs2 fpd dataset 
+def model_dataset(): 
+    querySno = SQLQuery('snowflake')
+    engine = querySno.engine
+    df = querySno(fpd_data)
     return df
+      

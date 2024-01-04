@@ -1,18 +1,21 @@
-import smtplib
+import os 
 import ssl
+import smtplib
 from email.message import EmailMessage
-import os
 
-def send_email(email_sender, email_password, email_receiver, month):
+path2 = "/Users/pooja/Desktop/Pooja/model monitoring/GitHub/model_monitoring/reports/"
+
+email_sender = 'pooja.sharma@novo.co'
+email_password = os.environ.get('EMAIL_PASSWORD')
+email_receiver = 'pooja.sharma@novo.com'
+
+def send_email(month):
     try: 
         subject = 'RS2 Model Monitoring Report'
         body = f"""
         Model performance and data drift report for {month}
         """
 
-        # Path to the HTML document report
-        report_path = "/Users/pooja/Desktop/Pooja/model monitoring/GitHub/model_monitoring/reports/combined_reports/report_" + month + ".html"
- 
         # Create the email message
         msg = EmailMessage()
         msg['From'] = email_sender
@@ -20,6 +23,7 @@ def send_email(email_sender, email_password, email_receiver, month):
         msg['Subject'] = subject
         msg.set_content(body)
 
+        report_path = path2 + 'combined_reports/report_'+ month + '.html'
         # Attach the HTML report
         with open(report_path, 'rb') as f:
             attachment = f.read()
@@ -40,12 +44,5 @@ def send_email(email_sender, email_password, email_receiver, month):
     except Exception as e:
         print('Unexpected error:', e)
 
-# if __name__ == "__main__": 
-
-#     email_sender = 'pooja.sharma@novo.co'
-#     email_password = os.environ.get('EMAIL_PASSWORD')
-#     email_receiver = 'psharma0880@gmail.com'
-    
-#     send_email(email_sender, email_password, email_receiver)
  
 
