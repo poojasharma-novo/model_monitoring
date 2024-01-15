@@ -3,7 +3,7 @@ import ssl
 import smtplib
 from email.message import EmailMessage
 
-path2 = "/Users/pooja/Desktop/Pooja/model monitoring/GitHub/model_monitoring/reports/"
+path2 = "/Users/pooja/Desktop/GitHub/model_monitoring/reports/"
 
 email_sender = 'pooja.sharma@novo.co'
 email_password = os.environ.get('EMAIL_PASSWORD')

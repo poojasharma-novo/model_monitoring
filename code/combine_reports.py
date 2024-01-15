@@ -4,8 +4,8 @@ import os
 import datetime
 from dateutil.relativedelta import relativedelta
 
-path1 = "/Users/pooja/Desktop/Pooja/model monitoring/GitHub/model_monitoring/data/"
-path2 = "/Users/pooja/Desktop/Pooja/model monitoring/GitHub/model_monitoring/reports/"
+path1 = "/Users/pooja/Desktop/GitHub/model_monitoring/data/"
+path2 = "/Users/pooja/Desktop/GitHub/model_monitoring/reports/"
 
 # previous to previous month 
 current_date = datetime.date.today()
@@ -13,17 +13,21 @@ previous_to_previous_month = current_date - relativedelta(months=2)
 month = previous_to_previous_month.strftime("%b")  
 month2 = previous_to_previous_month.strftime('%B')
 
-file1 = path2 + "model_performance/label_classification_" + month + ".html"
-file2 = path2 + "data_drift/data_drift_" + month+ ".html"
-file3 = path2 + "data_drift/data_stability_"+month+ ".html"
+file1 = path2 + "model_performance/classification_" + month + ".html"
+file2 = path2 + "model_performance/rocCurve_" + month + ".html"
+file3 = path2 + "model_performance/KsMetric_" + month + ".html"
+file4 = path2 + "data_drift/data_drift_" + month+ ".html"
+file5 = path2 + "data_drift/data_stability_"+month+ ".html"
 
-files = [file1, file2, file3]
+files = [file1, file2, file3, file4, file5]
 heading1 = "Model Performance"
-heading2 = "Dataset Drift"
-heading3 = "Dataset Stability"
+heading2 = "RocAuc Curve"
+heading3 = "Ks Metric"
+heading4 = "Dataset Drift"
+heading5 = "Dataset Stability"
 main_heading = month2+" Report"
 output_file = path2 + 'combined_reports/report_' +month+'.html'  
-headings = [heading1, heading2, heading3]
+headings = [heading1, heading2, heading3, heading4, heading5]
 
 def combine_html():
   with open(output_file, "w") as output:

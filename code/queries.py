@@ -54,7 +54,7 @@ COALESCE(
         json_extract_path_text(predict_meta, 'default_proba'),
         json_extract_path_text(predict_meta, 'data.default_proba'),
         null
-    ) as default_proba,
+    )as default_proba,
 novo_risk_score as rs2_score, CREATED_AT
 ,ROW_NUMBER() OVER(partition by business_id order by CREATED_AT desc) as row_num
 from FIVETRAN_DB.PROD_NOVO_API_PUBLIC.LENDING_DECISION_RESULTS
@@ -81,7 +81,7 @@ select business_id, rs2_score, created_at, default_proba,extract('week', created
 )
 
 ,expected_data_2_tmp as (
-select business_id, rs2_score, default_proba, decision, created_at, created_at_year, created_at_month, created_at_week,
+select business_id, rs2_score, CAST(default_proba as FLOAT) as default_proba, decision, created_at, created_at_year, created_at_month, created_at_week,
 case 
     when rs2_score <= 461.0 then 1
     when rs2_score > 461.0 and rs2_score <= 532.2 then 2

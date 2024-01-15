@@ -1,11 +1,11 @@
 import sys
 import pandas as pd 
-sys.path.insert(0, '/Users/pooja/Desktop/Pooja/model monitoring/GitHub/model_monitoring/conf')
+sys.path.insert(0, '/Users/pooja/Desktop/GitHub/model_monitoring/conf')
 from config import SQLQuery
 from queries import rs2_features, fpd_data
 
-path1 = "/Users/pooja/Desktop/Pooja/model monitoring/GitHub/model_monitoring/data/"
-path2 = "/Users/pooja/Desktop/Pooja/model monitoring/GitHub/model_monitoring/reports/"
+path1 = "/Users/pooja/Desktop/GitHub/model_monitoring/data/"
+path2 = "/Users/pooja/Desktop/GitHub/model_monitoring/reports/"
 
 data_params = pd.read_pickle(path1 + "rs2_dataset/data_params.pkl")
 transformer = pd.read_pickle(path1 + "rs2_dataset/data_scaler_v2.pkl")
@@ -52,8 +52,8 @@ def ref_dataset(feature_set, data_params, transformer):
 # dataset used as x_train in rs2 model
 def train_dataset(): 
     x_train = pd.read_csv(path1 + "rs2_dataset/x_train.csv")
-    x_train = x_train[['predicted_fpd3','fpd_plus_3']]
-    x_train.rename(columns={"predicted_fpd3": "predicted_fpd", "fpd_plus_3": "actual_fpd"}, inplace=True)
+    x_train = x_train[['predicted_fpd3','fpd_plus_3','proba']]
+    x_train.rename(columns={"predicted_fpd3": "predicted_fpd", "fpd_plus_3": "actual_fpd",'proba': 'default_proba'}, inplace=True)
     return x_train
 
 # current rs2_feature dataset
